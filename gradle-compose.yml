@@ -1,0 +1,18 @@
+version: '0.0.2'
+source: "https://github.com/tr7zw/LegacyModTemplate/tree/main"
+replacements:
+  name: "EntityCulling"
+  id: "entityculling"
+  version: "1.6.2"
+  description: "This mod uses async path-tracing to hide Tiles/Entities that are not visible."
+  homepageUrl: "https://modrinth.com/mod/entityculling"
+  sourcesUrl: "https://github.com/tr7zw/EntityCulling"
+  issuesUrl: "https://github.com/tr7zw/EntityCulling/issues"
+  curseforgeid: "448233"
+  modrinthid: "NNAgCjsB"
+enabledFlags:
+  - autopublish
+  - publishFabric
+  - publishForge
+rootProject:
+  template: "."

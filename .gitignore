@@ -8,3 +8,9 @@ bin
 .classpath
 .idea
 .vscode/launch.json
+stonecutter.gradle.kts
+stonecutter.gradle
+settings.gradle
+gradle.properties
+/gradle/wrapper
+/versions
