@@ -11,10 +11,15 @@ import dev.tr7zw.entityculling.ducks.CullableExt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.player.*;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
+import net.minecraft.world.*;
+//? if = 1.12.2 {
+/*
+import net.minecraft.util.math.*;
+ */
+//? }
 
 public class CullTask implements Runnable {
 
@@ -43,21 +48,39 @@ public class CullTask implements Runnable {
             try {
                 Thread.sleep(sleepDelay);
 
-                if (EntityCullingMod.enabled && client.theWorld != null && client.thePlayer != null && client.thePlayer.ticksExisted > 10 && client.getRenderViewEntity() != null) {
-                    Vec3 cameraMC;
+                World world = MinecraftUtil.getWorld();
+                EntityPlayer player = MinecraftUtil.getPlayer();
+
+                if (EntityCullingMod.enabled && world != null && player != null && player.ticksExisted > 10 && client.getRenderViewEntity() != null) {
+                    Vec3d cameraMC;
+                    //? if = 1.12.2 {
+/*
+                    net.minecraft.util.math.Vec3d mcc;
                     if(EntityCullingMod.instance.config.debugMode) {
-                        cameraMC = client.thePlayer.getPositionEyes(0);
+                        mcc = player.getPositionEyes(0);
                     } else {
-                        cameraMC = getCameraPos();
+                        mcc = getCameraPos();
                     }
-                    if (requestCull || !(cameraMC.xCoord == lastPos.x && cameraMC.yCoord == lastPos.y && cameraMC.zCoord == lastPos.z)) {
+                    cameraMC = new Vec3d(mcc.x, mcc.y, mcc.z);
+                    *///? } else {
+                    
+                    Vec3 mcc;
+                    if(EntityCullingMod.instance.config.debugMode) {
+                        mcc = player.getPositionEyes(0);
+                    } else {
+                        mcc = getCameraPos();
+                    }
+                    cameraMC = new Vec3d(mcc.xCoord, mcc.yCoord, mcc.zCoord);
+                     
+                    //? }
+                    if (requestCull || !(cameraMC.x == lastPos.x && cameraMC.y == lastPos.y && cameraMC.z == lastPos.z)) {
                         long start = System.currentTimeMillis();
                         requestCull = false;
-                        lastPos.set(cameraMC.xCoord, cameraMC.yCoord, cameraMC.zCoord);
+                        lastPos.set(cameraMC.x, cameraMC.y, cameraMC.z);
                         Vec3d camera = lastPos;
                         culling.resetCache();
                         boolean noCulling = client.gameSettings.thirdPersonView != 0;
-                        Iterator<TileEntity> iterator = client.theWorld.loadedTileEntityList.iterator();
+                        Iterator<TileEntity> iterator = world.loadedTileEntityList.iterator();
                         TileEntity entry;
                         while(iterator.hasNext()) {
                             try {
@@ -66,9 +89,18 @@ public class CullTask implements Runnable {
                                 break; // We are not synced to the main thread, so NPE's/CME are allowed here and way less
                                 // overhead probably than trying to sync stuff up for no really good reason
                             }
+                            //? if = 1.12.2 {
+/*
+                            if(unCullable.contains(entry.getBlockType().getTranslationKey())) {
+                                continue;
+                            }
+                            *///? else {
+                            
                             if(unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
                                 continue;
                             }
+                             
+                            //? }
                             CullableExt cullable = (CullableExt) entry;
                             if (!cullable.entityCulling$isForcedVisible()) {
                                 if (noCulling) {
@@ -76,7 +108,7 @@ public class CullTask implements Runnable {
                                     continue;
                                 }
                                 BlockPos pos = entry.getPos();
-                                if(pos.distanceSq(cameraMC.xCoord, cameraMC.yCoord, cameraMC.zCoord) < 64*64) { // 64 is the fixed max tile view distance
+                                if(pos.distanceSq(cameraMC.x, cameraMC.y, cameraMC.z) < 64*64) { // 64 is the fixed max tile view distance
                                     aabbMin.set(pos.getX(), pos.getY(), pos.getZ());
                                     aabbMax.set(pos.getX()+1d, pos.getY()+1d, pos.getZ()+1d);
                                     boolean visible = culling.isAABBVisible(aabbMin, aabbMax, camera);
@@ -86,7 +118,7 @@ public class CullTask implements Runnable {
                             }
                         }
                         Entity entity;
-                        Iterator<Entity> iterable = client.theWorld.getLoadedEntityList().iterator();
+                        Iterator<Entity> iterable = world.getLoadedEntityList().iterator();
                         while (iterable.hasNext()) {
                             try {
                                 entity = iterable.next();
@@ -103,7 +135,7 @@ public class CullTask implements Runnable {
                                     cullable.entityCulling$setCulled(false);
                                     continue;
                                 }
-                                if(entity.getPositionVector().squareDistanceTo(cameraMC) > EntityCullingMod.instance.config.tracingDistance * EntityCullingMod.instance.config.tracingDistance) {
+                                if(squareDistanceTo(entity, cameraMC) > EntityCullingMod.instance.config.tracingDistance * EntityCullingMod.instance.config.tracingDistance) {
                                     cullable.entityCulling$setCulled(false); // If your entity view distance is larger than tracingDistance just render it
                                     continue;
                                 }
@@ -128,8 +160,21 @@ public class CullTask implements Runnable {
         EntityCullingMod.LOGGER.info("Shutting down culling task!");
     }
 
+    private double squareDistanceTo(Entity entity, Vec3d vec) {
+        double d0 = vec.x - entity.posX;
+        double d1 = vec.y - entity.posY;
+        double d2 = vec.z - entity.posZ;
+        return d0 * d0 + d1 * d1 + d2 * d2;
+    }
+
     // 1.8 doesn't know where the heck the camera is... what?!?
+    //? if = 1.12.2 {
+    //private net.minecraft.util.math.Vec3d getCameraPos() {
+    //? } else {
+    
     private Vec3 getCameraPos() {
+     
+    //? }
         //if (client.gameSettings.thirdPersonView == 0) {
         //    return client.getRenderViewEntity().getPositionEyes(0);
         //}

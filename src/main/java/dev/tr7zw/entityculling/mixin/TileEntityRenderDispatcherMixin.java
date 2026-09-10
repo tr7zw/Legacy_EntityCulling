@@ -13,9 +13,17 @@ import net.minecraft.tileentity.TileEntity;
 @Mixin(TileEntityRendererDispatcher.class)
 public class TileEntityRenderDispatcherMixin {
 
+    //? if = 1.12.2 {
+/*
+    @Inject(method = "Lnet/minecraft/client/renderer/tileentity/TileEntityRendererDispatcher;renderTileEntityAt(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", at = @At("HEAD"), cancellable = true)
+    public void renderTileEntityAt(TileEntity blockEntity, double x, double y, double z, float partialTicks, int destroyStage, float p_192854_10_, CallbackInfo info) {
+    *///? } else {
+    
     @Inject(method = "renderTileEntityAt(Lnet/minecraft/tileentity/TileEntity;DDDFI)V", at = @At("HEAD"), cancellable = true)
-    public void renderTileEntityAt(TileEntity blockEntity, double x, double y,
+        public void renderTileEntityAt(TileEntity blockEntity, double x, double y,
             double z, float partialTicks, int destroyStage, CallbackInfo info) {
+    
+    //? }
         if (!((CullableExt) blockEntity).entityCulling$isForcedVisible() && ((CullableExt) blockEntity).entityCulling$isCulled()) {
             EntityCullingMod.instance.skippedBlockEntities++;
             info.cancel();

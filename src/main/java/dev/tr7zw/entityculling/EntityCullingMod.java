@@ -9,11 +9,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.logisticscraft.occlusionculling.OcclusionCullingInstance;
 
+import com.mojang.realmsclient.gui.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -26,6 +26,11 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
+//? if = 1.12.2 {
+/*
+import net.minecraft.util.text.*;
+ */
+//? }
 
 @Mod(
         modid = EntityCullingMod.MODID,
@@ -116,14 +121,22 @@ public class EntityCullingMod {
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Text event) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (!mc.gameSettings.showDebugInfo || mc.gameSettings.reducedDebugInfo || mc.thePlayer.hasReducedDebug()) {
+        if (!mc.gameSettings.showDebugInfo || mc.gameSettings.reducedDebugInfo || MinecraftUtil.getPlayer().hasReducedDebug()) {
             return;
         }
 
+        //? if = 1.12.2 {
+/*
+        event.getLeft().add("[Culling] Last pass: " + cullTask.lastTime + "ms");
+        event.getLeft().add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
+        event.getLeft().add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
+        *///? } else {
+        
         event.left.add("[Culling] Last pass: " + cullTask.lastTime + "ms");
         event.left.add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
         event.left.add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
-        //event.left.add("[Culling] Ticked Entities: " + lastTickedEntities + " Skipped: " + lastSkippedEntityTicks);
+         
+        //? }
 
         renderedBlockEntities = 0;
         skippedBlockEntities = 0;
@@ -144,7 +157,19 @@ public class EntityCullingMod {
     public void keyBindPressed() {
         if (keybind.isPressed()) {
             enabled = !enabled;
-            EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+            //? if = 1.12.2 {
+            /*if (enabled) {
+                if (Minecraft.getMinecraft().ingameGUI != null) {
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(ChatFormatting.GREEN + "Culling on"));
+                }
+            } else {
+                if (Minecraft.getMinecraft().ingameGUI != null) {
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(ChatFormatting.RED + "Culling off"));
+                }
+            }
+            *///? } else {
+            
+            EntityPlayerSP player = MinecraftUtil.getPlayer();
             if (enabled) {
                 if (player != null) {
                     player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Culling on"));
@@ -154,6 +179,8 @@ public class EntityCullingMod {
                     player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Culling off"));
                 }
             }
+             
+            //? }
         }
     }
 }

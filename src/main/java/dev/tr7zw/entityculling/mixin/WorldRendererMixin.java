@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.*;
 
 import dev.tr7zw.entityculling.EntityCullingMod;
 import dev.tr7zw.entityculling.ducks.CullableExt;
@@ -19,9 +19,16 @@ public abstract class WorldRendererMixin {
     @Shadow
     public abstract <T extends Entity> Render<T> getEntityRenderObject(Entity entityIn);
 
+    //? if = 1.12.2 {
+    /*@Inject(at = @At("HEAD"), method = "doRenderEntity", cancellable = true)
+    public void doRenderEntity(Entity entity, double x, double y, double z, float yaw, float partialTicks, boolean p_188391_10_, CallbackInfo info) {
+    *///? } else {
+    
     @Inject(at = @At("HEAD"), method = "doRenderEntity", cancellable = true)
     public void doRenderEntity(Entity entity, double x, double y, double z,
             float entityYaw, float partialTicks, boolean p_147939_10_, CallbackInfoReturnable<Boolean> info) {
+    
+    //? }
         CullableExt cullable = (CullableExt) entity;
         if (!cullable.entityCulling$isForcedVisible() && cullable.entityCulling$isCulled()) {
             if (EntityCullingMod.instance.config.renderNametagsThroughWalls) {
