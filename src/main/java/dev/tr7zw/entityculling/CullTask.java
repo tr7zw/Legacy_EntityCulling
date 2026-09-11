@@ -49,7 +49,10 @@ public class CullTask implements Runnable {
     private void populateWhitelist(Set<String> unCullableStrings) {
         unCullable.clear();
         for (String block : unCullableStrings) {
-            unCullable.add(Block.getBlockFromName(block));
+            Block b = Block.getBlockFromName(block);
+            if (b != null) {
+                unCullable.add(b);
+            }
         }
     }
 
