@@ -1,6 +1,7 @@
 {
     "versions": [
         "1.8.9-forge",
+        "1.7.10-forge",
         "1.12.2-forge"
     ]
 }

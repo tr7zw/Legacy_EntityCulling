@@ -2,6 +2,7 @@ package dev.tr7zw.entityculling;
 
 import net.minecraft.client.*;
 import net.minecraft.client.entity.*;
+import net.minecraft.entity.*;
 import net.minecraft.world.*;
 
 public class MinecraftUtil {
@@ -24,6 +25,16 @@ public class MinecraftUtil {
         return Minecraft.getMinecraft().thePlayer;
          
         //? }
+    }
+
+    public static Entity getRenderViewEntity() {
+        //? if >= 1.8.9 {
+        return Minecraft.getMinecraft().getRenderViewEntity();
+        //? } else {
+/*
+        return Minecraft.getMinecraft().renderViewEntity;
+
+        *///? }
     }
 
 }

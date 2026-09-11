@@ -1,3 +1,5 @@
+//? if >= 1.8.9 {
+
 package dev.tr7zw.entityculling;
 
 import dev.tr7zw.entityculling.mixin.RenderAccessor;
@@ -16,3 +18,5 @@ public final class RenderHook {
         accessor.callRenderName(entity, x, y, z);
     }
 }
+
+//? }

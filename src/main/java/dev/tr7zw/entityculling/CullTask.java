@@ -10,16 +10,19 @@ import com.logisticscraft.occlusionculling.util.Vec3d;
 import dev.tr7zw.entityculling.ducks.CullableExt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
+//? if >= 1.8.9 {
+
+import net.minecraft.entity.item.EntityArmorStand;
+
+//? }
 //? if = 1.12.2 {
 /*
 import net.minecraft.util.math.*;
- */
-//? }
+*///? }
 
 public class CullTask implements Runnable {
 
@@ -51,8 +54,9 @@ public class CullTask implements Runnable {
                 World world = MinecraftUtil.getWorld();
                 EntityPlayer player = MinecraftUtil.getPlayer();
 
-                if (EntityCullingMod.enabled && world != null && player != null && player.ticksExisted > 10 && client.getRenderViewEntity() != null) {
+                if (EntityCullingMod.enabled && world != null && player != null && player.ticksExisted > 10 && MinecraftUtil.getRenderViewEntity() != null) {
                     Vec3d cameraMC;
+                    // TODO: These debug modes dont really work due to the f5 camera not having a position in all of these versions
                     //? if = 1.12.2 {
 /*
                     net.minecraft.util.math.Vec3d mcc;
@@ -62,7 +66,7 @@ public class CullTask implements Runnable {
                         mcc = getCameraPos();
                     }
                     cameraMC = new Vec3d(mcc.x, mcc.y, mcc.z);
-                    *///? } else {
+                    *///? } else if = 1.8.9 {
                     
                     Vec3 mcc;
                     if(EntityCullingMod.instance.config.debugMode) {
@@ -72,7 +76,17 @@ public class CullTask implements Runnable {
                     }
                     cameraMC = new Vec3d(mcc.xCoord, mcc.yCoord, mcc.zCoord);
                      
-                    //? }
+                    //? } else {
+/*
+                    Vec3 mcc;
+                    if(EntityCullingMod.instance.config.debugMode) {
+                        mcc = Minecraft.getMinecraft().renderViewEntity.getPosition(0).addVector(0, MinecraftUtil.getPlayer().getEyeHeight(), 0);
+                    } else {
+                        mcc = getCameraPos();
+                    }
+                    cameraMC = new Vec3d(mcc.xCoord, mcc.yCoord, mcc.zCoord);
+
+                    *///? }
                     if (requestCull || !(cameraMC.x == lastPos.x && cameraMC.y == lastPos.y && cameraMC.z == lastPos.z)) {
                         long start = System.currentTimeMillis();
                         requestCull = false;
@@ -107,6 +121,8 @@ public class CullTask implements Runnable {
                                     cullable.entityCulling$setCulled(false);
                                     continue;
                                 }
+                                //? if >= 1.8.9 {
+                                
                                 BlockPos pos = entry.getPos();
                                 if(pos.distanceSq(cameraMC.x, cameraMC.y, cameraMC.z) < 64*64) { // 64 is the fixed max tile view distance
                                     aabbMin.set(pos.getX(), pos.getY(), pos.getZ());
@@ -114,7 +130,16 @@ public class CullTask implements Runnable {
                                     boolean visible = culling.isAABBVisible(aabbMin, aabbMax, camera);
                                     cullable.entityCulling$setCulled(!visible);
                                 }
-
+                                 
+                                //? } else {
+/*
+                                if(distanceSq(entry.xCoord, entry.yCoord, entry.zCoord, cameraMC.x, cameraMC.y, cameraMC.z) < 64*64) { // 64 is the fixed max tile view distance
+                                    aabbMin.set(entry.xCoord, entry.yCoord, entry.zCoord);
+                                    aabbMax.set(entry.xCoord + 1, entry.yCoord + 1, entry.zCoord + 1);
+                                    boolean visible = culling.isAABBVisible(aabbMin, aabbMax, camera);
+                                    cullable.entityCulling$setCulled(!visible);
+                                }
+                                *///? }
                             }
                         }
                         Entity entity;
@@ -139,7 +164,13 @@ public class CullTask implements Runnable {
                                     cullable.entityCulling$setCulled(false); // If your entity view distance is larger than tracingDistance just render it
                                     continue;
                                 }
+                                //? if >= 1.8.9 {
+                                
                                 AxisAlignedBB boundingBox = entity.getEntityBoundingBox();
+                                 
+                                //? } else {
+                                //AxisAlignedBB boundingBox = entity.boundingBox;
+                                //? }
                                 if(boundingBox.maxX - boundingBox.minX > hitboxLimit || boundingBox.maxY - boundingBox.minY > hitboxLimit || boundingBox.maxZ - boundingBox.minZ > hitboxLimit) {
                                     cullable.entityCulling$setCulled(false); // Too big to bother to cull
                                     continue;
@@ -167,6 +198,13 @@ public class CullTask implements Runnable {
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
+    private double distanceSq(double x1, double y1, double z1, double x2, double y2, double z2) {
+        double d3 = x1 - x2;
+        double d4 = y1 - y2;
+        double d5 = z1 - z2;
+        return d3 * d3 + d4 * d4 + d5 * d5;
+    }
+
     // 1.8 doesn't know where the heck the camera is... what?!?
     //? if = 1.12.2 {
     //private net.minecraft.util.math.Vec3d getCameraPos() {
@@ -178,7 +216,14 @@ public class CullTask implements Runnable {
         //if (client.gameSettings.thirdPersonView == 0) {
         //    return client.getRenderViewEntity().getPositionEyes(0);
         //}
+        //? if >= 1.8.9 {
+        
         return client.getRenderViewEntity().getPositionEyes(0);
+         
+        //? } else {
+/*
+        return Minecraft.getMinecraft().renderViewEntity.getPosition(0).addVector(0, MinecraftUtil.getPlayer().getEyeHeight(), 0);
+        *///? }
         // doesn't work correctly
 //        Entity entity = client.getRenderViewEntity();
 //        float f = entity.getEyeHeight();
@@ -220,7 +265,14 @@ public class CullTask implements Runnable {
     }
 
     private boolean isSkippableArmorstand(Entity entity) {
+        //? if <= 1.7.10 {
+/*
+        return false;
+        *///? } else {
+        
         if(!EntityCullingMod.instance.config.skipMarkerArmorStands)return false;
         return entity instanceof EntityArmorStand && ((EntityArmorStand) entity).hasMarker();
+         
+        //? }
     }
 }

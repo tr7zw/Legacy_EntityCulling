@@ -16,6 +16,10 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
+import org.apache.logging.log4j.*;
+import org.lwjgl.input.*;
+//? if >= 1.8.9 {
+
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -23,20 +27,32 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+ 
+//? } else {
+/*import cpw.mods.fml.client.registry.*;
+import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.eventhandler.*;
+import cpw.mods.fml.common.gameevent.*;
+*///? }
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 //? if = 1.12.2 {
 /*
 import net.minecraft.util.text.*;
- */
-//? }
+ 
+*///? }
 
 @Mod(
         modid = EntityCullingMod.MODID,
         name = EntityCullingMod.NAME,
         version = "1.6.2",
+        //? if >= 1.8.9 {
+        
         clientSideOnly = true,
+        
+        //? }
         acceptableRemoteVersions = "*"
 )
 public class EntityCullingMod {
@@ -121,9 +137,17 @@ public class EntityCullingMod {
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Text event) {
         Minecraft mc = Minecraft.getMinecraft();
+        //? if >= 1.8.9 {
+        
         if (!mc.gameSettings.showDebugInfo || mc.gameSettings.reducedDebugInfo || MinecraftUtil.getPlayer().hasReducedDebug()) {
             return;
         }
+         
+        //? } else {
+        /*if (!mc.gameSettings.showDebugInfo) {
+            return;
+        }
+        *///? }
 
         //? if = 1.12.2 {
 /*
