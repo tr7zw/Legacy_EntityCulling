@@ -6,9 +6,9 @@ import java.util.Set;
 
 public class Config {
 
-    public int configVersion = 4;
+    public int configVersion = 5;
     public boolean renderNametagsThroughWalls = true;
-    public Set<String> blockEntityWhitelist = new HashSet<>(Collections.singletonList("tile.beacon"));
+    public Set<String> blockEntityWhitelist = new HashSet<>(Collections.singletonList("beacon"));
     public int tracingDistance = 128;
     public boolean debugMode = false;
     public int sleepDelay = 10;

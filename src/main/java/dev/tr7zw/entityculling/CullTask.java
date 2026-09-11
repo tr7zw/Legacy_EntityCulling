@@ -8,6 +8,7 @@ import com.logisticscraft.occlusionculling.OcclusionCullingInstance;
 import com.logisticscraft.occlusionculling.util.Vec3d;
 
 import dev.tr7zw.entityculling.ducks.CullableExt;
+import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.*;
@@ -32,7 +33,7 @@ public class CullTask implements Runnable {
     private final Minecraft client = Minecraft.getMinecraft();
     private final int sleepDelay = EntityCullingMod.instance.config.sleepDelay;
     private final int hitboxLimit = EntityCullingMod.instance.config.hitboxLimit;
-    private final Set<String> unCullable;
+    private final Set<Block> unCullable = new java.util.HashSet<>();
     public long lastTime = 0;
 
     // reused preallocated vars
@@ -42,8 +43,16 @@ public class CullTask implements Runnable {
 
     public CullTask(OcclusionCullingInstance culling, Set<String> unCullable) {
         this.culling = culling;
-        this.unCullable = unCullable;
+        populateWhitelist(unCullable);
     }
+
+    private void populateWhitelist(Set<String> unCullableStrings) {
+        unCullable.clear();
+        for (String block : unCullableStrings) {
+            unCullable.add(Block.getBlockFromName(block));
+        }
+    }
+
 
     @Override
     public void run() {
@@ -110,7 +119,7 @@ public class CullTask implements Runnable {
                             }
                             *///? else {
                             
-                            if(unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
+                            if(unCullable.contains(entry.getBlockType())) {
                                 continue;
                             }
                              

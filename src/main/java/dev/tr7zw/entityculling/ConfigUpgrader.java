@@ -6,6 +6,11 @@ public class ConfigUpgrader {
         boolean changed = false;
 
         // check for more changes here
+        if(config.configVersion < 5) {
+            config.configVersion = 5;
+            changed = true;
+            config.blockEntityWhitelist.add("beacon");
+        }
 
         return changed;
     }
