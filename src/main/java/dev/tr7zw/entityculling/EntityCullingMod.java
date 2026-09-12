@@ -1,24 +1,30 @@
 package dev.tr7zw.entityculling;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.logisticscraft.occlusionculling.OcclusionCullingInstance;
 
-import com.mojang.realmsclient.gui.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.*;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.common.MinecraftForge;
+
 import org.apache.logging.log4j.*;
 import org.lwjgl.input.*;
-//? if >= 1.8.9 {
+//? if forge {
+
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.common.MinecraftForge;
+
+//? }
+
+//? if >= 1.8.9 && forge {
 
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -27,8 +33,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
- 
-//? } else {
+
+//? } else if forge {
 /*import cpw.mods.fml.client.registry.*;
 import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.event.*;
@@ -44,6 +50,8 @@ import net.minecraft.util.text.*;
  
 *///? }
 
+//? if forge {
+
 @Mod(
         modid = EntityCullingMod.MODID,
         name = EntityCullingMod.NAME,
@@ -55,12 +63,22 @@ import net.minecraft.util.text.*;
         //? }
         acceptableRemoteVersions = "*"
 )
-public class EntityCullingMod {
+
+//? }
+public class EntityCullingMod
+//? if ornithe {
+    //implements net.fabricmc.api.ClientModInitializer
+//? }
+{
     public static final String MODID = "entityculling";
     public static final String NAME = "EntityCulling";
     public static final Logger LOGGER = LogManager.getLogger(NAME);
 
+    //? if forge {
+    
     @Mod.Instance(MODID)
+     
+    //? }
     public static EntityCullingMod instance;
     private Path configFile;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -82,9 +100,15 @@ public class EntityCullingMod {
     //public int tickedEntities = 0;
     //public int skippedEntityTicks = 0;
 
-    @Mod.EventHandler
-    public void onPreInit(FMLPreInitializationEvent event) {
-        configFile = event.getModConfigurationDirectory().toPath().resolve(MODID + ".json");
+    public EntityCullingMod() {
+        instance = this;
+        //? if ornithe {
+        /*configFile = new File("config", "entityculling.json").toPath();
+        preInit();
+        *///? }
+    }
+
+    public void preInit() {
         if (Files.exists(configFile)) {
             try {
                 config = gson.fromJson(Files.newBufferedReader(configFile), Config.class);
@@ -102,8 +126,7 @@ public class EntityCullingMod {
         }
     }
 
-    @Mod.EventHandler
-    public void onInit(FMLInitializationEvent event) {
+    public void init() {
         culling = new OcclusionCullingInstance(config.tracingDistance, new Provider());
         cullTask = new CullTask(culling, config.blockEntityWhitelist);
         cullThread = new Thread(cullTask, "CullThread");
@@ -112,8 +135,6 @@ public class EntityCullingMod {
         });
         cullThread.start();
 
-        ClientRegistry.registerKeyBinding(keybind);
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     public void writeConfig() {
@@ -124,18 +145,7 @@ public class EntityCullingMod {
         }
     }
 
-    @SubscribeEvent
-    public void onWorldTick(TickEvent.WorldTickEvent event) {
-        cullTask.requestCull = true;
-    }
-
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        cullTask.requestCull = true;
-    }
-
-    @SubscribeEvent
-    public void onRenderGameOverlay(RenderGameOverlayEvent.Text event) {
+    public void addOverlayInfo(List<String> left) {
         Minecraft mc = Minecraft.getMinecraft();
         //? if >= 1.8.9 {
         
@@ -150,22 +160,94 @@ public class EntityCullingMod {
         *///? }
 
         //? if = 1.12.2 {
-/*
-        event.getLeft().add("[Culling] Last pass: " + cullTask.lastTime + "ms");
-        event.getLeft().add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
-        event.getLeft().add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
+        /*
+        left.add("[Culling] Last pass: " + cullTask.lastTime + "ms");
+        left.add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
+        left.add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
         *///? } else {
-        
-        event.left.add("[Culling] Last pass: " + cullTask.lastTime + "ms");
-        event.left.add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
-        event.left.add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
-         
+
+        left.add("[Culling] Last pass: " + cullTask.lastTime + "ms");
+        left.add("[Culling] Rendered Block Entities: " + renderedBlockEntities + " Skipped: " + skippedBlockEntities);
+        left.add("[Culling] Rendered Entities: " + renderedEntities + " Skipped: " + skippedEntities);
+
         //? }
 
         renderedBlockEntities = 0;
         skippedBlockEntities = 0;
         renderedEntities = 0;
         skippedEntities = 0;
+    }
+
+    public void keyBindPressed() {
+        if (keybind.isPressed()) {
+            enabled = !enabled;
+            //? if = 1.12.2 {
+            /*if (enabled) {
+                if (Minecraft.getMinecraft().ingameGUI != null) {
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(com.mojang.realmsclient.gui.ChatFormatting.GREEN + "Culling on"));
+                }
+            } else {
+                if (Minecraft.getMinecraft().ingameGUI != null) {
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(com.mojang.realmsclient.gui.ChatFormatting.RED + "Culling off"));
+                }
+            }
+            *///? } else {
+
+            EntityPlayerSP player = MinecraftUtil.getPlayer();
+            if (enabled) {
+                if (player != null) {
+                    player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Culling on"));
+                }
+            } else {
+                if (player != null) {
+                    player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Culling off"));
+                }
+            }
+
+            //? }
+        }
+    }
+
+    // Modloader hooks
+
+    //? if ornithe {
+/*
+    @Override
+    public void onInitializeClient() {
+        init();
+        // TODO: Register keybinds
+        net.ornithemc.osl.lifecycle.api.client.ClientWorldEvents.TICK_END.register((world) -> {
+            cullTask.requestCull = true;
+        });
+        net.ornithemc.osl.lifecycle.api.client.MinecraftClientEvents.TICK_END.register((client) -> {
+            cullTask.requestCull = true;
+        });
+    }
+
+    *///? }
+
+    //? if forge {
+    
+    @SubscribeEvent
+    public void onRenderGameOverlay(RenderGameOverlayEvent.Text event) {
+        //? if = 1.12.2 {
+        //addOverlayInfo(event.getLeft());
+        //? } else {
+        addOverlayInfo(event.left);
+        //? }
+    }
+
+    @Mod.EventHandler
+    public void onInit(FMLInitializationEvent event) {
+        init();
+        ClientRegistry.registerKeyBinding(keybind);
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @Mod.EventHandler
+    public void onPreInit(FMLPreInitializationEvent event) {
+        configFile = event.getModConfigurationDirectory().toPath().resolve(MODID + ".json");
+        preInit();
     }
 
     @SubscribeEvent
@@ -178,33 +260,16 @@ public class EntityCullingMod {
         keyBindPressed();
     }
 
-    public void keyBindPressed() {
-        if (keybind.isPressed()) {
-            enabled = !enabled;
-            //? if = 1.12.2 {
-            /*if (enabled) {
-                if (Minecraft.getMinecraft().ingameGUI != null) {
-                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(ChatFormatting.GREEN + "Culling on"));
-                }
-            } else {
-                if (Minecraft.getMinecraft().ingameGUI != null) {
-                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(ChatFormatting.RED + "Culling off"));
-                }
-            }
-            *///? } else {
-            
-            EntityPlayerSP player = MinecraftUtil.getPlayer();
-            if (enabled) {
-                if (player != null) {
-                    player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Culling on"));
-                }
-            } else {
-                if (player != null) {
-                    player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Culling off"));
-                }
-            }
-             
-            //? }
-        }
+    @SubscribeEvent
+    public void onWorldTick(TickEvent.WorldTickEvent event) {
+        cullTask.requestCull = true;
     }
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        cullTask.requestCull = true;
+    }
+     
+    //? }
+
 }

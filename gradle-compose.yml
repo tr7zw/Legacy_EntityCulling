@@ -10,6 +10,7 @@ replacements:
   issuesUrl: "https://github.com/tr7zw/EntityCulling/issues"
   curseforgeid: "448233"
   modrinthid: "NNAgCjsB"
+  fabric_entrypoint: "dev.tr7zw.entityculling.EntityCullingMod"
 enabledFlags:
   - autopublish
   - publishFabric
