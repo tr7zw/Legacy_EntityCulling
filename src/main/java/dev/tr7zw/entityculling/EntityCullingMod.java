@@ -184,11 +184,11 @@ public class EntityCullingMod
             //? if = 1.12.2 {
             /*if (enabled) {
                 if (Minecraft.getMinecraft().ingameGUI != null) {
-                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(com.mojang.realmsclient.gui.ChatFormatting.GREEN + "Culling on"));
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString("§aCulling on"));
                 }
             } else {
                 if (Minecraft.getMinecraft().ingameGUI != null) {
-                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString(com.mojang.realmsclient.gui.ChatFormatting.RED + "Culling off"));
+                    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.SYSTEM, new TextComponentString("§cCulling off"));
                 }
             }
             *///? } else {
